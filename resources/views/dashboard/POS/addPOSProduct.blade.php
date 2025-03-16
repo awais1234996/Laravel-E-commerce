@@ -1,0 +1,466 @@
+@extends('dashboard.master_layout.master')
+
+@section('content')
+    <div class="page-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-sm-6">
+                    <h4 class="page-title">POS Add</h4>
+                </div>
+                <div class="col-sm-6">
+
+                    <center>
+                        <h4 class="page-title">
+                            <a href="{{ route('pos_userinfo.index') }}" class="btn btn-primary" ">View POS</a>
+                                </h4></center>
+                            </div>
+
+
+
+                            </div>
+                            <div class="row">
+
+                                <div class="col-md-6">
+                                    <div class="card-box">
+                                        <div class="table-responsive table-hover">
+                                            <table class="table mb-0 new-patient-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Product Code</th>
+                                                        <th>Product Name</th>
+                                                        <th>Unit Price</th>
+                                                        <th>Quantity</th>
+                                                        <th>Add</th>
+
+
+                                                    </tr>
+                                                        @foreach ($products as $item)
+                                <tr>
+                                    <td>{{ $item->id }}</td>
+                                    <td>{{ $item->product_code }}</td>
+                                    <td>{{ $item->product_name }}</td>
+                                    <td>{{ $item->unit_price }}</td>
+
+
+                                    <form action="{{ route('AddPOSProduct.store') }}" method="post" id="formdata">
+                                        @csrf
+                                        @method('POST')
+                                        <td>
+                                            <input type="number" id="pqty" class="form-control"
+                                                name="product_quantity" max="20" min="1"
+                                                style="width: 80px; border:rgb(194, 194, 194) solid 1px;" value="1">
+                                        </td>
+                                        <input type="hidden" name="product_name" value="{{ $item->product_name }}">
+                                        <input type="hidden" name="product_code" value="{{ $item->product_code }}">
+                                        <input type="hidden" name="unit_price" value="{{ $item->unit_price }}">
+                                        <td>
+                                            <div class="text-right">
+                                                <input type="submit" value="Add" class="btn btn-primary">
+                                            </div>
+                                        </td>
+
+                                    </form>
+
+
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                </table>
+                </div><br><br>
+                {{ $products->links('pagination::bootstrap-5') }}
+
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h4 class="page-title">Invoice</h4>
+                </div>
+            </div>
+            <div class="card-box">
+
+                <form method="post" action="{{ route('pos_userinfo.store') }}" id="invoicedata">
+                    @csrf
+                    @method('POST')
+
+                    <div class="form-group">
+                        <label><b>Invoice#</b></label>
+                        @php
+                            $invoiceNumber = uniqid();
+                        @endphp
+
+                        <input type="text" value="{{ $invoiceNumber }}" readonly id="invoice" name="invoice"
+                            class="form-control @error('invoice') is-invalid @enderror">
+
+                        <span class="text-danger">
+                            @error('invoice')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label><b>User Name</b></label>
+                        <input type="text" name="user_name"
+                            class="form-control @error('user_name') is-invalid @enderror">
+                        <span class="text-danger">
+                            @error('user_name')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label><b>Contact#</b></label>
+                        <input type="number" name="contact" class="form-control @error('contact') is-invalid @enderror">
+                        <span class="text-danger">
+                            @error('contact')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label><b>Total Cash</b></label>
+                        @php
+                            $totalAmount = DB::table('add_pos_products')->sum('product_total_price');
+                        @endphp
+                        <input type="number" name="total_cash" readonly value="{{ $totalAmount }}"
+                            class="form-control @error('total_cash') is-invalid @enderror">
+                        <span class="text-danger">
+                            @error('total_cash')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label><b>Status</b></label><br>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" name="status" value="Completed"
+                                class="form-check-input @error('status') is-invalid @enderror"
+                                {{ old('status') === 'Completed' ? 'checked' : '' }}>
+                            <label class="form-check-label">Completed</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" name="status" value="Pending"
+                                class="form-check-input @error('status') is-invalid @enderror"
+                                {{ old('status') === 'Pending' ? 'checked' : '' }}>
+                            <label class="form-check-label">Pending</label>
+                        </div><br>
+                        <span class="text-danger">
+                            @error('status')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <input type="submit" value="Submit" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="row">
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h4 class="page-title">POS View</h4>
+                </div>
+            </div>
+            <div class="card-box">
+                <div class="table-responsive table-hover">
+                    <table class="table mb-0 new-patient-table">
+                        <tbody>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product Code</th>
+                                <th>Product Name</th>
+                                <th>Unit Price</th>
+                                <th>Quantity</th>
+                                <th>Total Price</th>
+                                <th>Delete</th>
+
+
+                            </tr>
+
+                            @foreach ($pos as $item)
+                                <tr>
+                                    <td>{{ $item->id }}</td>
+                                    <td>{{ $item->product_code }}</td>
+                                    <td>{{ $item->product_name }}</td>
+                                    <td>{{ $item->product_unit_price }}</td>
+                                    <td>
+                                        <form action="{{ route('AddPOSProduct.update', $item->id) }}" method="POST"
+                                            class="update-form">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="number" class="form-control qty-input pqty" name="pos_quantity"
+                                                max="20" min="1"
+                                                style="width: 80px; border:rgb(194, 194, 194) solid 1px;"
+                                                value="{{ $item->product_quantity }}"
+                                                data-unit-price="{{ $item->product_unit_price }}"
+                                                data-item-id="{{ $item->id }}">
+
+                                            <input type="hidden" name="product_name" value="{{ $item->product_name }}">
+                                            <input type="hidden" name="product_code" value="{{ $item->product_code }}">
+                                            <input type="hidden" name="unit_price" value="{{ $item->unit_price }}">
+                                        </form>
+                                    </td>
+                                    <td class="total-price">{{ $item->product_total_price }}</td>
+
+                                    <td>
+                                        <form action="{{ route('AddPOSProduct.destroy', $item->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-danger-delete delete-btn">
+                                                <i class="fa-solid fa-trash-can"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+
+
+
+
+                                </tr>
+                            @endforeach
+                            <tr>
+                                @if (DB::table('add_pos_products')->count() == !0)
+                                    @php
+                                        $totalAmount = DB::table('add_pos_products')->sum('product_total_price');
+                                    @endphp
+                                    <th>
+                                        <h2>Total Amount:-</h2>
+                                    </th>
+                                    <td colspan="5">
+                                        <center>
+                                            <h3>{{ $totalAmount }}</h3>
+                                        </center>
+                                    </td>
+                                    <td>
+                                        <form action="{{ route('AddPOSProduct.show', $item->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-danger-delete delete-btn">
+                                                <i class="fa-solid fa-trash-can"></i><br> Delete All
+                                            </button>
+                                        </form>
+                                    </td>
+                                @endif
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><br><br>
+                {{ $pos->links('pagination::bootstrap-5') }}
+            </div>
+        </div>
+
+
+
+    </div>
+    </div>
+
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(document).on('submit', '#formdata', function(e) {
+                e.preventDefault();
+                var mydata = new FormData(this);
+                $.ajax({
+                    url: "{{ route('AddPOSProduct.store') }}",
+                    method: 'POST',
+                    data: mydata,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.status == 1) {
+                            Swal.fire({
+                                icon: "success",
+                                title: response.message,
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                            window.location.href = "{{ route('AddPOSProduct.create') }}";
+                        } else if (response.status == 2) {
+                            Swal.fire({
+                                icon: "error",
+                                title: response.message,
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else if (response.status == 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: response.message,
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            alert(response);
+                        }
+                    }
+                });
+            });
+        });
+
+
+        // Invoice
+
+
+        $(document).ready(function() {
+            $(document).on('submit', '#invoicedata', function(e) {
+                e.preventDefault();
+                var mydata = new FormData(this);
+                $.ajax({
+                    url: "{{ route('pos_userinfo.store') }}",
+                    method: 'POST',
+                    data: mydata,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.status == 1) {
+                            Swal.fire({
+                                icon: "success",
+                                title: response.message,
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                            $("#invoicedata").trigger("reset")
+                            window.location.href = "{{ route('AddPOSProduct.create') }}";
+                        } else if (response.status == 2) {
+                            Swal.fire({
+                                icon: "error",
+                                title: response.message,
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            alert(response);
+                        }
+                    }
+                });
+            });
+        });
+
+
+
+
+        // Quantity Change
+
+
+        $(document).on('change', '.pqty', function(e) {
+            e.preventDefault();
+
+            let element = $(this);
+            let itemId = element.data('item-id');
+            let quantity = element.val();
+            let unitPrice = element.data('unit-price');
+            let mydata = {
+                _method: "PUT",
+                _token: "{{ csrf_token() }}",
+                pos_quantity: quantity,
+                unit_price: unitPrice
+            };
+
+            $.ajax({
+                url: "{{ route('AddPOSProduct.update', '') }}/" + itemId,
+                method: 'POST',
+                data: mydata,
+                success: function(response) {
+                    if (response.status == 1) {
+                        Swal.fire({
+                            icon: "success",
+                            title: response.message,
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        setTimeout(() => {
+
+                            window.location.href = "{{ route('AddPOSProduct.create') }}";
+                        }, 1000);
+                    } else if (response.status == 2) {
+                        Swal.fire({
+                            icon: "error",
+                            title: response.message,
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+
+        // Delete POS Product
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.delete-btn').forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const form = button.closest('form');
+
+                    const swalWithBootstrapButtons = Swal.mixin({
+                        customClass: {
+                            confirmButton: "btn btn-success",
+                            cancelButton: "btn btn-danger"
+                        },
+                        buttonsStyling: false
+                    });
+                    swalWithBootstrapButtons.fire({
+                        title: "Are you sure?",
+                        text: "You won't be able to revert this!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Yes, delete it!",
+                        cancelButtonText: "No, cancel!",
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                            // alert("ok");
+                            swalWithBootstrapButtons.fire({
+                                title: "Deleted!",
+                                text: "The product has been deleted.",
+                                icon: "success"
+                            });
+                        } else if (
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swalWithBootstrapButtons.fire({
+                                title: "Cancelled",
+                                text: "The product is safe.",
+                                icon: "error"
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+@endsection
